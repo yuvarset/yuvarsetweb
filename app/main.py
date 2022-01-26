@@ -2,6 +2,8 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_mysqldb import MySQL
 import datetime
 import os
+import xsmtplib
+from email.message import EmailMessage
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = 'super secret key'
@@ -77,7 +79,7 @@ def mailPass():
         msg['To'] = request.form['email']
         msg.set_content(f"Hi {rows[0]['name']} \n\nYour login details are as follows :\n     Username : {rows[0]['username']} \n     Password : {rows[0]['password']}\n\nPlease avoid repling to this email \nHave a great day \n\n\nKind Regards, \nTeam YUVA")
 
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+        with xsmtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
             smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             smtp.send_message(msg)
 
