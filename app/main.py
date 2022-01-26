@@ -7,12 +7,12 @@ app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
 
-# Database connection
+# Database connection through Heroku
 app.config["DEBUG"] = True
-app.config["MYSQL_HOST"] = "sql6.freemysqlhosting.net"
-app.config["MYSQL_USER"] = "sql6458625"
-app.config["MYSQL_PASSWORD"] = "PpFuFC8nPT"
-app.config["MYSQL_DB"] = "sql6458625"
+app.config["MYSQL_HOST"] = os.environ.get("MYSQL_HOST")
+app.config["MYSQL_USER"] = os.environ.get("MYSQL_USER")
+app.config["MYSQL_PASSWORD"] = os.environ.get("MYSQL_PASSWORD")
+app.config["MYSQL_DB"] = os.environ.get("MYSQL_DB")
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 mysql = MySQL(app)
 
