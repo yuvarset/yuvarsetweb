@@ -1,6 +1,7 @@
-#test script
+# Back End Script deployed via Heroku
 from flask import Flask, flash, redirect, render_template, request, url_for
-from flask_mysqldb import MySQL
+#from flask_mysqldb import MySQL
+import psycopg2
 import datetime
 import os
 import smtplib
@@ -11,17 +12,13 @@ app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
 
-# Database connection through heroku
-app.config["DEBUG"] = True
-app.config["MYSQL_HOST"] = os.environ.get('MYSQL_HOST')
-app.config["MYSQL_USER"] = os.environ.get('MYSQL_USER')
-app.config["MYSQL_PASSWORD"] = os.environ.get('MYSQL_PASSWORD')
-app.config["MYSQL_DB"] = os.environ.get('MYSQL_DB')
-app.config["MYSQL_CURSORCLASS"] = "DictCursor"
-mysql = MySQL(app)
+# Database connection through Env Variables
+mysql = psycopg2.connect(host=os.environ.get('MYSQL_HOST'),
+                   user=os.environ.get('MYSQL_USER'),
+                   password=os.environ.get('MYSQL_PASSWORD'),
+                   database=os.environ.get('MYSQL_DB'))
 
-
-# html pages connection
+# Html pages connection
 @app.route('/', methods=['GET', 'POST'])
 def index():
     currentDateTime = datetime.datetime.now()
@@ -36,7 +33,7 @@ def login():
 
     if request.method == 'POST':
 
-        cur = mysql.connection.cursor()
+        cur = mysql.cursor()
         login.username = request.form['username']
         statement = f"SELECT username from users WHERE username='{login.username}' AND Password = '{request.form['password']}';"
         cur.execute(statement)
@@ -52,8 +49,7 @@ def login():
 
 @app.route('/user')
 def user():
-    con = mysql.connection
-    cur = con.cursor()
+    cur = mysql.cursor()
     cur.execute(f"SELECT * from users WHERE username = '{login.username}'")
     rows = cur.fetchall()
     return render_template("user.html", rows=rows)
@@ -64,8 +60,7 @@ def forgot():
 
 @app.route('/mailPass', methods=["POST"])
 def mailPass():
-    con = mysql.connection
-    cur = con.cursor()
+    cur = mysql.cursor()
     cur.execute(f"SELECT * from users WHERE email = '{request.form['email']}'")
     rows = list(cur.fetchall())
     if len(rows) == 0:
@@ -78,7 +73,7 @@ def mailPass():
         msg['Subject'] = '[YUVA SUPPORT] Login Details for YMMS'
         msg['From'] = EMAIL_ADDRESS
         msg['To'] = request.form['email']
-        msg.set_content(f"Hi {rows[0]['name']} \n\nYour login details are as follows :\n     Username : {rows[0]['username']} \n     Password : {rows[0]['password']}\n\nPlease avoid repling to this email \nHave a great day \n\n\nKind Regards, \nTeam YUVA")
+        msg.set_content(f"Hi {rows[0][2]} \n\nYour login details are as follows :\n     Username : {rows[0][0]} \n     Password : {rows[0][1]}\n\nPlease avoid repling to this email \nHave a great day \n\n\nKind Regards, \nTeam YUVA")
 
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
             smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
